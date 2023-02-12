@@ -1,0 +1,9 @@
+syntax = 'proto3';
+
+package messages;
+
+message DBotCommand {
+  string intent_type = 1;
+  string intent_data = 2;
+  double confidence = 3;
+}

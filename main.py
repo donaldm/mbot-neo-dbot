@@ -1,36 +1,36 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-# import cyberpi
-import queue
-import threading
-from tempfile import NamedTemporaryFile
-from time import sleep
-import cyberpi
-import random
-
-import fuzzy
-from bluetooth import *
-
 import argparse
 import io
 import os
-import speech_recognition as sr
-import whisper
 import json
+import queue
+import random
 import re
-
-from number_parser import parse
-
-import torch
+import threading
 from datetime import datetime, timedelta
 from queue import Queue
 from tempfile import NamedTemporaryFile
 from time import sleep
-
-from adapt.intent import IntentBuilder
+import pygame
+import cyberpi
+import fuzzy
+import speech_recognition as sr
+import whisper
 from adapt.engine import IntentDeterminationEngine
+from adapt.intent import IntentBuilder
+from number_parser import parse
+
+from makeblock.modules.cyberpi.api_cyberpi_api import module_auto
+from makeblock.modules.cyberpi.api_cyberpi_api import autoconnect
+from makeblock.protocols.PackData import HalocodePackData
+
+# set SDL to use the dummy NULL video driver,
+#   so it doesn't need a windowing system.
+os.environ["SDL_VIDEODRIVER"] = "dummy"
+
+pygame.init()
+
+# Set up the drawing window
+screen = pygame.display.set_mode([640, 480])
 
 engine = IntentDeterminationEngine()
 
@@ -145,6 +145,86 @@ engine.register_intent_parser(decelerate_intent)
 engine.register_intent_parser(greeting_intent)
 
 
+def set_transfer_mode():
+    autoconnect()
+    repl_mode = HalocodePackData.repl_mode()
+    repl_mode.mode = HalocodePackData.TYPE_RUN_WITHOUT_RESPONSE
+    repl_mode.on_response = module_auto.common_request_response_cb
+    module_auto.send_script(repl_mode)
+    module_auto._board.repl('import communication')
+    module_auto._board.repl('communication.bind_passthrough_channels("uart0", "uart1")')
+
+
+def send_repl(command):
+    autoconnect()
+    REQUEST_DELAY_TIME = 0.001
+    module_auto.delay_sync(REQUEST_DELAY_TIME)
+    module_auto._board.repl(command)
+
+
+def send_command(command):
+    autoconnect()
+    REQUEST_DELAY_TIME = 0.001
+    module_auto.delay_sync(REQUEST_DELAY_TIME)
+    pack = HalocodePackData()
+    pack.type = HalocodePackData.TYPE_SCRIPT
+    pack.script = command
+    pack.on_response = module_auto.common_request_response_cb
+    pack.mode = HalocodePackData.TYPE_RUN_WITHOUT_RESPONSE
+    module_auto.send_script(pack)
+    #module_auto._board.repl(command)
+
+
+class CyberPiSprite(object):
+    def __init__(self, variable_name, file_path):
+        self.variable_name = variable_name
+        self.image = pygame.image.load(file_path)
+
+
+class _CyberPiExtrasBackground(object):
+    @staticmethod
+    def fill(r, g, b):
+        send_command('cyberpi.background.fill({r},{g},{b})'.format(r=r, g=g, b=b))
+
+
+class _CyberPiExtrasScreen(object):
+    @staticmethod
+    def render():
+        send_command('cyberpi.screen.render()')
+
+
+class _CyberPiExtrasUtils(object):
+    @staticmethod
+    def send_image_to_cyberpi(image):
+        image_width = image.get_width()
+        image_height = image.get_height()
+
+
+        #set_transfer_mode()
+        # send_command('cyberpi.screen.disable_autorender()')
+        send_repl("dog1 = cyberpi.sprite()")
+        send_command("dog1.draw_QR('www.google.com')\r\ndog1.move_to(64,64)\r\ndog1.show()\r\ncyberpi.screen.render()")
+
+        image_array = []
+        for j in range(0, image_height):
+            for i in range(0, image_width):
+                color = image.get_at((i, j))
+                red = color.r
+                green = color.g
+                blue = color.b
+                hex_value = f'{red:02x}{green:02x}{blue:02x}'
+                hex_value = '0x' + hex_value.upper()
+
+                image_array.append(hex_value)
+
+
+
+class CyberPiExtras(object):
+    background = _CyberPiExtrasBackground
+    screen = _CyberPiExtrasScreen
+    utils = _CyberPiExtrasUtils
+
+
 class DBot(object):
     def __init__(self):
         self.commands = []
@@ -207,6 +287,7 @@ class DBot(object):
     def stop(self):
         print("Dbot stop")
         cyberpi.mbot2.forward(0)
+        cyberpi.mbot2.backward(0)
         self.speed = 0
 
     def play_greeting(self):
@@ -254,11 +335,14 @@ class DBot(object):
         self.commands.append(command)
 
     def obstacle_avoidance(self):
-        print(cyberpi.ultrasonic2.get())
-        if cyberpi.ultrasonic2.get() < 8:
+        if cyberpi.ultrasonic2.get() < 16:
             cyberpi.mbot2.backward(self.speed, 1)
-            cyberpi.mbot2.turn_right(self.speed, 1)
+            cyberpi.mbot2.turn_right(self.speed, 2)
             cyberpi.mbot2.forward(self.speed)
+
+    def clear_screen(self, r, g, b):
+        smile = pygame.image.load(os.path.join('images', 'smiley.png'))
+        CyberPiExtras.utils.send_image_to_cyberpi(smile)
 
     def update(self, current_command=""):
         if current_command == "":
