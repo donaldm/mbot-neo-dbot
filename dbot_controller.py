@@ -9,7 +9,8 @@ import threading
 from time import sleep
 import pygame
 import cyberpi
-
+import pyttsx3
+from chatgpt_wrapper import ChatGPT
 
 from makeblock.modules.cyberpi.api_cyberpi_api import module_auto
 from makeblock.modules.cyberpi.api_cyberpi_api import autoconnect
@@ -105,14 +106,37 @@ class CyberPiExtras(object):
     utils = _CyberPiExtrasUtils
 
 
+def speak(phrases_buffer):
+    tts_engine = pyttsx3.init()
+    voices = tts_engine.getProperty('voices')
+    tts_engine.setProperty('voice', voices[1].id)
+    while True:
+        if not phrases_buffer.empty():
+            phrase = phrases_buffer.get()
+            print(phrase)
+            tts_engine.say(phrase)
+            tts_engine.runAndWait()
+
+
+phrases_queue = queue.Queue()
+tts_thread = threading.Thread(target=speak, args=(phrases_queue,))
+tts_thread.start()
+
 class DBot(object):
     def __init__(self):
         self.intents = []
         self.speed = 0
         self.direction = ""
+        self.engine = pyttsx3.init()
+        self.bot = ChatGPT()
 
     def is_ready(self):
-        cyberpi.audio.play("hello")
+        #cyberpi.audio.play("hello")
+        text = 'Hello, I am ready to listen'
+        self.speak(text)
+
+    def speak(self, text):
+        phrases_queue.put(text)
 
     def move_forward(self, speed=10):
         print("DBot move forward {speed}".format(speed=speed))
@@ -154,7 +178,7 @@ class DBot(object):
 
     def play_greeting(self):
         greeting = random.choice(['hi', 'hello'])
-        cyberpi.audio.play(greeting)
+        self.speak(greeting)
         self.play_ultrasonic_emotion('happy')
 
     def open_gripper(self):
@@ -170,7 +194,8 @@ class DBot(object):
         self.open_gripper()
         self.close_gripper()
         cyberpi.audio.play("iron")
-        cyberpi.audio.play("laugh")
+        self.speak("Yey")
+        self.speak("Good job")
         self.open_gripper()
         self.close_gripper()
         self.open_gripper()
@@ -267,6 +292,13 @@ class DBot(object):
         smile = pygame.image.load(os.path.join('images', 'smiley.png'))
         CyberPiExtras.utils.send_image_to_cyberpi(smile)
 
+    def process_chatgpt_intent(self, chatgpt_intent_json):
+        self.speak('Got it. Give me a minute.')
+        if 'prompt' in chatgpt_intent_json:
+            prompt = chatgpt_intent_json.get('prompt')
+            response = self.bot.ask(prompt)
+            self.speak(response)
+
     def update(self):
         intent = self.intents.pop()
 
@@ -302,6 +334,8 @@ class DBot(object):
             self.process_clap_intent()
         elif intent_type == "ShakeIntent":
             self.process_shake_intent()
+        elif intent_type == "ChatGPTIntent":
+            self.process_chatgpt_intent(intent)
 
 
 def consume_intents(intents_buffer):
@@ -315,8 +349,7 @@ def consume_intents(intents_buffer):
             dbot.push_intent(intent)
             dbot.update()
         # dbot.obstacle_avoidance()
-        sleep(0.25)
-
+        sleep(0.05)
 
 
 def main():

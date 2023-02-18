@@ -1,0 +1,57 @@
+---
+entities:
+  - name: MoveKeyword
+    keywords:
+      - move
+      - go
+
+  - name: MoveType
+    keywords:
+      - forward
+      - forwards
+      - backward
+      - backwards
+
+  - name: TurnKeyword
+    keywords:
+      - turn
+
+  - name: TurnDirection
+    keywords:
+      - left
+      - right
+
+  - name: StopKeyword
+    keywords:
+      - stop
+      - pause
+      - halt
+
+  intents:
+    - name: MoveIntent
+      require:
+        - MoveKeyword
+        - MoveType
+      optionally:
+        - Speed
+      fallbacks_commands:
+        - move forward
+        - move backward
+        - go forward
+        - go backward
+
+    - name: TurnIntent
+      require:
+        - TurnKeyword
+        - TurnDirection
+      fallback_commands:
+        - turn left
+        - turn right
+
+    - name: StopIntent
+      require:
+        - StopKeyword
+
+    - name: AccelerateIntent
+      require:
+        - AccelerateKeyword

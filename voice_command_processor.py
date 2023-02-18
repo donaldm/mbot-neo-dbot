@@ -61,6 +61,7 @@ for stop_keyword in stop_keywords:
 
 engine.register_regex_entity("(?P<Speed>.*)")
 engine.register_regex_entity("(?P<Angle>.*)")
+engine.register_regex_entity("(?P<Question>.*)")
 
 accelerate_keywords = [
     "faster"
@@ -149,6 +150,15 @@ shake_keywords = [
 for shake_keyword in shake_keywords:
     engine.register_entity(shake_keyword, "ShakeKeyword")
 
+""""
+dbot_keywords = [
+    "question"
+]
+
+for dbot_keyword in dbot_keywords:
+    engine.register_entity(dbot_keyword, "DBotKeyword")
+"""
+
 move_intent = IntentBuilder("MoveIntent")\
     .require("MoveKeyword")\
     .require("MoveType")\
@@ -206,6 +216,13 @@ shake_intent = IntentBuilder("ShakeIntent")\
     .require("ShakeKeyword")\
     .build()
 
+"""
+dbot_intent = IntentBuilder("DBotIntent")\
+    .require("DBotKeyword")\
+    .require("Question")\
+    .build()
+"""
+
 engine.register_intent_parser(move_intent)
 engine.register_intent_parser(turn_intent)
 engine.register_intent_parser(stop_intent)
@@ -218,6 +235,7 @@ engine.register_intent_parser(raise_arm_intent)
 engine.register_intent_parser(lower_arm_intent)
 engine.register_intent_parser(clap_intent)
 engine.register_intent_parser(shake_intent)
+#engine.register_intent_parser(dbot_intent)
 
 fallback_commands = [
     "move forward",
@@ -340,6 +358,12 @@ def process_voice_events(args, audio_model, command_buffer):
         except KeyboardInterrupt:
             break
 
+phrases_to_ignore = [
+    'thank you.',
+    '',
+    '.',
+    '.....'
+]
 
 def handle_intent(producer, current_command):
     print('Processing command: ' + current_command)
@@ -362,6 +386,20 @@ def handle_intent(producer, current_command):
             print('Call update again with ' + matching_command)
             handle_intent(producer, matching_command)
 
+    if not handled_intent:
+        for phrase in phrases_to_ignore:
+            if current_command.strip() == phrase:
+                return
+
+        intent_data = {'intent_type': 'ChatGPTIntent',
+                       'prompt': current_command}
+
+        dbot_command = DBotCommand()
+        dbot_command.intent_type = 'ChatGPTIntent'
+        dbot_command.intent_data = json.dumps(intent_data)
+        dbot_command.confidence = 1.0
+        producer.send('dbot', dbot_command.SerializeToString())
+
 
 def consume_commands(command_buffer):
     producer = KafkaProducer(bootstrap_servers=['localhost:29092'])
@@ -381,7 +419,7 @@ def main():
                         help="Don't use the english model.")
     parser.add_argument("--energy_threshold", default=300,
                         help="Energy level for mic to detect.", type=int)
-    parser.add_argument("--record_timeout", default=1,
+    parser.add_argument("--record_timeout", default=2,
                         help="How real time the recording is in seconds.", type=float)
     parser.add_argument("--phrase_timeout", default=2,
                         help="How much empty space between recordings before we "
