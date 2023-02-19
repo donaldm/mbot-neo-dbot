@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from time import sleep
 from kafka import KafkaProducer
 from messages.DBotCommand_pb2 import DBotCommand
+from messages.DBotStatus_pb2 import DBotStatus
 import json
 
 engine = IntentDeterminationEngine()
@@ -150,15 +151,6 @@ shake_keywords = [
 for shake_keyword in shake_keywords:
     engine.register_entity(shake_keyword, "ShakeKeyword")
 
-""""
-dbot_keywords = [
-    "question"
-]
-
-for dbot_keyword in dbot_keywords:
-    engine.register_entity(dbot_keyword, "DBotKeyword")
-"""
-
 move_intent = IntentBuilder("MoveIntent")\
     .require("MoveKeyword")\
     .require("MoveType")\
@@ -216,13 +208,6 @@ shake_intent = IntentBuilder("ShakeIntent")\
     .require("ShakeKeyword")\
     .build()
 
-"""
-dbot_intent = IntentBuilder("DBotIntent")\
-    .require("DBotKeyword")\
-    .require("Question")\
-    .build()
-"""
-
 engine.register_intent_parser(move_intent)
 engine.register_intent_parser(turn_intent)
 engine.register_intent_parser(stop_intent)
@@ -235,7 +220,7 @@ engine.register_intent_parser(raise_arm_intent)
 engine.register_intent_parser(lower_arm_intent)
 engine.register_intent_parser(clap_intent)
 engine.register_intent_parser(shake_intent)
-#engine.register_intent_parser(dbot_intent)
+
 
 fallback_commands = [
     "move forward",
@@ -305,6 +290,10 @@ def process_voice_events(args, audio_model, command_buffer):
 
     # Cue the user that we're ready to go.
     print("Model loaded.\n")
+    dbot_status = DBotStatus()
+    dbot_status.status = DBotStatus.STATUS_CODE.VOICE_MODEL_LOADED
+    producer = KafkaProducer(bootstrap_servers=['localhost:29092'])
+    producer.send('status', dbot_status.SerializeToString())
 
     while True:
         try:
@@ -376,7 +365,7 @@ def handle_intent(producer, current_command):
             dbot_command.intent_type = intent_type
             dbot_command.intent_data = json.dumps(intent)
             dbot_command.confidence = intent.get('confidence')
-            producer.send('dbot', dbot_command.SerializeToString())
+            producer.send('commands', dbot_command.SerializeToString())
             handled_intent = True
 
     if not handled_intent:
@@ -398,7 +387,7 @@ def handle_intent(producer, current_command):
         dbot_command.intent_type = 'ChatGPTIntent'
         dbot_command.intent_data = json.dumps(intent_data)
         dbot_command.confidence = 1.0
-        producer.send('dbot', dbot_command.SerializeToString())
+        producer.send('commands', dbot_command.SerializeToString())
 
 
 def consume_commands(command_buffer):

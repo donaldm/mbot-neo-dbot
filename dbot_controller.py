@@ -1,5 +1,6 @@
 from kafka import KafkaConsumer
 from messages.DBotCommand_pb2 import DBotCommand
+from messages.DBotStatus_pb2 import DBotStatus
 import os
 import json
 import queue
@@ -122,18 +123,16 @@ phrases_queue = queue.Queue()
 tts_thread = threading.Thread(target=speak, args=(phrases_queue,))
 tts_thread.start()
 
+
 class DBot(object):
     def __init__(self):
         self.intents = []
         self.speed = 0
         self.direction = ""
         self.engine = pyttsx3.init()
+        self.speak("Hello, I am initializing")
         self.bot = ChatGPT()
-
-    def is_ready(self):
-        #cyberpi.audio.play("hello")
-        text = 'Hello, I am ready to listen'
-        self.speak(text)
+        self.speak("I have connected to ChatGPT")
 
     def speak(self, text):
         phrases_queue.put(text)
@@ -340,7 +339,6 @@ class DBot(object):
 
 def consume_intents(intents_buffer):
     dbot = DBot()
-    dbot.is_ready()
 
     while True:
         if not intents_buffer.empty():
@@ -352,19 +350,34 @@ def consume_intents(intents_buffer):
         sleep(0.05)
 
 
+def process_status(message):
+    dbot_status = DBotStatus()
+    dbot_status.ParseFromString(message.value)
+    if dbot_status.status == DBotStatus.STATUS_CODE.VOICE_MODEL_LOADED:
+        phrases_queue.put("I am ready to listen")
+
+
+def process_commands(message, intents_buffer):
+    dbot_command = DBotCommand()
+    dbot_command.ParseFromString(message.value)
+    intent_data = json.loads(dbot_command.intent_data)
+    intents_buffer.put(intent_data)
+
+
 def main():
     intents_buffer = queue.Queue()
 
     consumer_thread = threading.Thread(target=consume_intents, args=(intents_buffer,))
     consumer_thread.start()
 
-    dbot_command = DBotCommand()
-    consumer = KafkaConsumer('dbot', bootstrap_servers='localhost:29092')
-    for message in consumer:
-        dbot_command.ParseFromString(message.value)
-        intent_data = json.loads(dbot_command.intent_data)
-        intents_buffer.put(intent_data)
+    consumer = KafkaConsumer( bootstrap_servers='localhost:29092')
+    consumer.subscribe(['status', 'commands'])
 
+    for message in consumer:
+        if message.topic == "status":
+            process_status(message)
+        elif message.topic == "commands":
+            process_commands(message, intents_buffer)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,13 @@
+syntax = 'proto3';
+
+package messages;
+
+message DBotStatus {
+  enum STATUS_CODE {
+    NOT_READY = 0;
+    CONNECTED_TO_MBOT = 1;
+    VOICE_MODEL_LOADED = 2;
+  }
+
+  STATUS_CODE status = 1;
+}
