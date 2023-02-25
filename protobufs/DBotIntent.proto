@@ -1,0 +1,10 @@
+syntax = 'proto3';
+
+package messages;
+
+message DBotIntent {
+  string name = 1;
+  string sent = 2;
+  string matches = 3;
+  double conf = 4;
+}

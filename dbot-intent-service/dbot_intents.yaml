@@ -1,0 +1,81 @@
+---
+entities:
+  - name: move_direction
+    choices:
+      - forward
+      - forwards
+      - backward
+      - backwards
+
+  - name: stop_target
+    choices:
+      - movement
+      - talking
+
+  - name: turn_direction
+    choices:
+      - left
+      - right
+
+intents:
+  - name: greeting
+    example_sentences:
+      - hello (dbot|friend|buddy)
+      - hi
+
+  - name: goodbye
+    example_sentences:
+      - see you!
+      - goodbye!
+      - goodnight
+
+  - name: move
+    example_sentences:
+      - (move|go) {move_direction}
+      - (move|go) {move_direction} {speed}
+
+  - name: stop
+    example_sentences:
+      - stop
+      - stop dbot
+      - stop {stop_target}
+
+  - name: accelerate
+    example_sentences:
+      - faster
+      - hurry up
+
+  - name: decelerate
+    example_sentences:
+      - slower
+      - slow down
+
+  - name: turn
+    example_sentences:
+      - turn {turn_direction}
+
+  - name: open_gripper
+    example_sentences:
+      - open (gripper|hand)
+
+  - name: close_gripper
+    example_sentences:
+      - close (gripper|hand)
+
+  - name: raise_arm
+    example_sentences:
+      - raise arm
+
+  - name: lower_arm
+    example_sentences:
+      - lower arm
+
+  - name: clap
+    example_sentences:
+      - clap
+      - clap dbot
+
+  - name: shake
+    example_sentences:
+      - shake
+      - shake dbot

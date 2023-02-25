@@ -1,5 +1,21 @@
 version: '2'
 services:
+  redis:
+      image: redis:alpine3.17
+      command: redis-server
+      restart: always
+      ports:
+        - '6379:6379'
+      expose:
+        - '6379'
+      volumes:
+        - redis-data:/data
+        - redis-conf:/usr/local/etc/redis/redis.conf
+
+  dbot-intent-service:
+    image: dbot-intent-service:1.0
+    build: ./dbot-intent-service
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     entrypoint: sh -c 'sleep 30 && /etc/confluent/docker/run'
@@ -11,6 +27,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:latest
+    restart: always
     depends_on:
       - zookeeper
     ports:
@@ -43,3 +60,7 @@ services:
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:9092 --list
       "
+
+volumes:
+  redis-data:
+  redis-conf:
