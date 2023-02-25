@@ -3,7 +3,7 @@ from padatious import IntentContainer
 import os
 import glob
 from pathlib import Path
-
+import json
 
 class PadatiousIntentGenerator(object):
     def __init__(self, dbot_intent_file_path):
@@ -47,4 +47,5 @@ class DBotIntentParser(object):
         self.container.train()
 
     def calc_intent(self, input_text):
-        return self.container.calc_intent(input_text)
+        intent = self.container.calc_intent(input_text)
+        return intent

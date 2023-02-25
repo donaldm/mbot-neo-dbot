@@ -10,5 +10,6 @@ RUN pip3 install -r requirements.txt
 COPY dbot_intent_service.py ${INTENT_SERVICE_WORKDIR}
 COPY dbot_intents.yaml ${INTENT_SERVICE_WORKDIR}
 COPY dbot_intent_service ${INTENT_SERVICE_WORKDIR}/dbot_intent_service
+COPY tests ${INTENT_SERVICE_WORKDIR}/tests
 
 ENTRYPOINT ["python", "dbot_intent_service.py"]
