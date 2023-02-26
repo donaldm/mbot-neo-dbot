@@ -67,6 +67,8 @@ jobs:
       - name: Install node
         run: |
           apk add --update nodejs npm
+          ls -ltra ${{ github.workspace }}/test-results/*.xml
+          cat ${{ github.workspace }}/test-results/dbot_intent_service.xml
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
