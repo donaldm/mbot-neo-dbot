@@ -1,4 +1,8 @@
 # MBot Neo DBot
+
+[![DBot Pipeline](https://github.com/donaldm/mbot-neo-dbot/actions/workflows/dbot-pipeline.yml/badge.svg)](https://github.com/donaldm/mbot-neo-dbot/actions/workflows/dbot-pipeline.yml)
+
+
 AI program for MBot Neo using OpenAI Whisper and Mycroft Adapt-Intent Parser.
 
 **NOTE: This project is under active development and it may not be suitable for your use. I make no gurantees that it will work on your robot or in your environment.**

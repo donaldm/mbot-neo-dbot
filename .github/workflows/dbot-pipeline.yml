@@ -70,6 +70,7 @@ jobs:
           apk add --update nodejs npm
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
+        id: test-results
         if: always()
         with:
           files: |
