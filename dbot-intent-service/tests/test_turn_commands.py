@@ -14,7 +14,7 @@ def dbot_intent_parser_fixture():
     dbot_intent_parser = DBotIntentParser(dbot_intents_file_path, parent)
     return dbot_intent_parser
 
-@pytest.mark.stop_commands
+@pytest.mark.turn_commands
 @pytest.mark.parametrize('turn_command', ['turn'])
 @pytest.mark.parametrize('turn_direction', ['left', 'right'])
 def test_turn(dbot_intent_parser_fixture, turn_command, turn_direction):

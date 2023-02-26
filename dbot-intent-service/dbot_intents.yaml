@@ -21,8 +21,10 @@ entities:
 intents:
   - name: greeting
     example_sentences:
+      - hello
       - hello (dbot|friend|buddy)
       - hi
+      - hi (dbot|friend|buddy)
 
   - name: goodbye
     example_sentences:
