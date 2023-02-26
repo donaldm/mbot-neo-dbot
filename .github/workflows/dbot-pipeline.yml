@@ -62,16 +62,13 @@ jobs:
       - name: Test with pytest
         working-directory: /dbot/intent_service
         run: |
-          mkdir -p ${{ github.workspace }}/test-results
-          pytest --junitxml=${{ github.workspace }}/test-results/dbot_intent_service.xml
+          mkdir -p test-results
+          pytest --junitxml=test-results/dbot_intent_service.xml
       - name: Install node
         run: |
           apk add --update nodejs npm
-          ls -ltra ${{ github.workspace }}/test-results/*.xml
-          cat ${{ github.workspace }}/test-results/dbot_intent_service.xml
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        working-directory: ${{ github.workspace }}
         if: always()
         with:
           files: |
