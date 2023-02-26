@@ -27,7 +27,7 @@ jobs:
       - name: Login to container registry
         uses: docker/login-action@v2.1.0
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: $REGISTRY
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -35,7 +35,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4.3.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: $REGISTRY/$IMAGE_NAME
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
@@ -49,7 +49,7 @@ jobs:
     needs: build-dbot-intent-service
     runs-on: ubuntu-latest
     container:
-      image: ${{ env.REGISTRY }}/donaldm/mbot-neo-dbot/dbot-intent-service:main
+      image: $REGISTRY/donaldm/mbot-neo-dbot/dbot-intent-service:main
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
