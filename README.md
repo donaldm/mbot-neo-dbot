@@ -1,6 +1,8 @@
 # MBot Neo DBot
 AI program for MBot Neo using OpenAI Whisper and Mycroft Adapt-Intent Parser.
 
+**NOTE: This project is under active development and it may not be suitable for your use. I make no gurantees that it will work on your robot or in your environment.**
+
 ## Installation
 
 ### makeblock modifications to support Bluetooth programming mode
