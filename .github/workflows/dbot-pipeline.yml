@@ -51,7 +51,7 @@ jobs:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}/dbot-intent-service
     container:
-      image: $${{env.REGISTRY}}/donaldm/mbot-neo-dbot/dbot-intent-service:main
+      image: ${{ env.REGISTRY }}/donaldm/mbot-neo-dbot/dbot-intent-service:main
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
