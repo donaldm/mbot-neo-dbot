@@ -9,6 +9,7 @@ entities:
 
   - name: stop_target
     choices:
+      - dbot
       - movement
       - talking
 
@@ -37,7 +38,6 @@ intents:
   - name: stop
     example_sentences:
       - stop
-      - stop dbot
       - stop {stop_target}
 
   - name: accelerate
