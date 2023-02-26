@@ -60,9 +60,10 @@ jobs:
       packages: read
     steps:
       - name: Test with pytest
-        working-directory: /dbot/intent_service
         run: |
+          echo $PWD
           mkdir -p test-results
+          cd /dbot/intent_service
           pytest --junitxml=${{ github.workspace }}/dbot_intent_service.xml
       - name: Install node
         run: |
