@@ -61,7 +61,7 @@ jobs:
     steps:
       - name: Test with pytest
         run: |
-          TEST_RESULT_FOLDER=${{ GITHUB_WORKSPACE }}/test-results
+          TEST_RESULT_FOLDER=$GITHUB_WORKSPACE/test-results
           mkdir -p $TEST_RESULT_FOLDER
           cd /dbot/intent_service
           pytest --junitxml=$TEST_RESULT_FOLDER/dbot_intent_service.xml
