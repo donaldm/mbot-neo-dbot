@@ -28,8 +28,9 @@ intents:
 
   - name: goodbye
     example_sentences:
-      - see you!
-      - goodbye!
+      - see you
+      - goodbye
+      - good bye
       - goodnight
 
   - name: move
