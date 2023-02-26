@@ -379,6 +379,6 @@ def main():
         elif message.topic == "commands":
             process_commands(message, intents_buffer)
 
-
+# main
 if __name__ == '__main__':
     main()
