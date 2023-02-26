@@ -61,10 +61,10 @@ jobs:
     steps:
       - name: Test with pytest
         run: |
-          echo $PWD
-          mkdir -p test-results
+          TEST_RESULT_FOLDER=${{ GITHUB_WORKSPACE }}/test-results
+          mkdir -p $TEST_RESULT_FOLDER
           cd /dbot/intent_service
-          pytest --junitxml=${{ github.workspace }}/dbot_intent_service.xml
+          pytest --junitxml=$TEST_RESULT_FOLDER/dbot_intent_service.xml
       - name: Install node
         run: |
           apk add --update nodejs npm
@@ -73,4 +73,4 @@ jobs:
         if: always()
         with:
           files: |
-            ${{ github.workspace }}/*.xml
+            test-results/*.xml
