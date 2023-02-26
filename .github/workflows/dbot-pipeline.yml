@@ -72,4 +72,4 @@ jobs:
         if: always()
         with:
           files: |
-            ${{ github.workspace }}/test-results/dbot_intent_service.xml
+            test-results/dbot_intent_service.xml
