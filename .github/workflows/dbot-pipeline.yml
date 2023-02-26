@@ -68,9 +68,8 @@ jobs:
         run: |
           apk add --update nodejs npm
       - name: Publish test results
-        uses: mikepenz/action-junit-report@v3
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          report_paths: test-results/**/*.xml
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            test-results/**/*.xml
