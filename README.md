@@ -41,6 +41,12 @@ In the future I will work to make this change included in the DBot code and not 
 
 ## Usage
 
+### Running the software
+
+```
+docker-compose up -d
+```
+
 ### Discovering MBot Neo BLE device information
 
 Using the Python ble-serial package we can run a ble-scan:
