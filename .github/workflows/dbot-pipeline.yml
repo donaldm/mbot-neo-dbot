@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: dbot-intent-service
+  IMAGE_NAME: ${{ github.repository }}/dbot-intent-service
 
 jobs:
   build-dbot-intent-service:
@@ -42,3 +42,34 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  test-dbot-intent-service:
+    needs: build-dbot-intent-service
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ env.REGISTRY }}/donaldm/mbot-neo-dbot/dbot-intent-service:main
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+      issues: read
+      checks: write
+      pull-requests: write
+      packages: read
+    steps:
+      - name: Test with pytest
+        working-directory: /dbot/intent_service
+        run: |
+          mkdir -p ${{ github.workspace }}/test-results
+          pytest --junitxml=${{ github.workspace }}/test-results/dbot_intent_service.xml
+      - name: Install node
+        run: |
+          apk add --update nodejs npm
+      - name: Publish test results
+        uses: mikepenz/action-junit-report@v3
+        if: always()
+        with:
+          report_paths: test-results/**/*.xml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
