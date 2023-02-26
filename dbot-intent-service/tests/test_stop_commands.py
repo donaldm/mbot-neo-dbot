@@ -14,7 +14,7 @@ def dbot_intent_parser_fixture():
     dbot_intent_parser = DBotIntentParser(dbot_intents_file_path, parent)
     return dbot_intent_parser
 
-
+@pytest.mark.stop_commands
 @pytest.mark.parametrize('stop_command', ['stop'])
 @pytest.mark.parametrize('stop_target', ['', 'dbot', 'movement', 'talking'])
 def test_stop(dbot_intent_parser_fixture, stop_command, stop_target):

@@ -14,7 +14,7 @@ def dbot_intent_parser_fixture():
     dbot_intent_parser = DBotIntentParser(dbot_intents_file_path, parent)
     return dbot_intent_parser
 
-
+@pytest.mark.move_commands
 @pytest.mark.parametrize('move_command', ['go', 'move'])
 @pytest.mark.parametrize('move_direction', ['forwards', 'backwards'])
 def test_move(dbot_intent_parser_fixture, move_command, move_direction):
