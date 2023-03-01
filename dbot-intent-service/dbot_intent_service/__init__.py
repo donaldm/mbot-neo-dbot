@@ -5,6 +5,7 @@ import glob
 from pathlib import Path
 import json
 
+
 class PadatiousIntentGenerator(object):
     def __init__(self, dbot_intent_file_path):
         self.dbot_intent_file_path = dbot_intent_file_path

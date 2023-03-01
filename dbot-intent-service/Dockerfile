@@ -12,4 +12,6 @@ COPY dbot_intents.yaml ${INTENT_SERVICE_WORKDIR}
 COPY dbot_intent_service ${INTENT_SERVICE_WORKDIR}/dbot_intent_service
 COPY tests ${INTENT_SERVICE_WORKDIR}/tests
 
+COPY messages ${INTENT_SERVICE_WORKDIR}/messages
+
 ENTRYPOINT ["python", "dbot_intent_service.py"]
