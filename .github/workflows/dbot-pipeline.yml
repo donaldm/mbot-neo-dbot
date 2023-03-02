@@ -36,6 +36,15 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+
+      - name: Compile protobuf
+        shell: pwsh
+        run: ./compile_protobuf.ps1
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
