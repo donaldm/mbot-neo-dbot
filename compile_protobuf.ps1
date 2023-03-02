@@ -9,6 +9,6 @@ foreach ($folder in $folders)
     foreach ($protobuf in $protobufs)
     {
         $protobufPath = Join-Path -Path 'protobufs' -ChildPath $protobuf
-        protoc -I=protobufs --python_out =$folder protobufs\$protobufPath
+        protoc -I=protobufs --python_out=$folder $protobufPath
     }
 }
