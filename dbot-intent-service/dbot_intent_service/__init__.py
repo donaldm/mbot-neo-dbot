@@ -49,4 +49,7 @@ class DBotIntentParser(object):
 
     def calc_intent(self, input_text):
         intent = self.container.calc_intent(input_text)
-        return intent
+        if intent.conf > 0.5:
+            return intent
+        else:
+            return None

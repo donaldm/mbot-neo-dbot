@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import json
 import os
 import sys
 from kafka import KafkaConsumer, KafkaProducer
@@ -27,6 +27,7 @@ def main():
 
     kafka_server_url = f'{kafka_bootstrap_host}:{kafka_bootstrap_port}'
 
+    print(f'Connecting to {kafka_server_url}...')
     producer = KafkaProducer(bootstrap_servers=[kafka_server_url])
 
     consumer = KafkaConsumer(bootstrap_servers=[kafka_server_url])
@@ -34,13 +35,24 @@ def main():
 
     for message in consumer:
         if message.topic == 'utterances':
-            dbot_intent = dbot_intent_parser.calc_intent(message.utterance)
-            dbot_intent_message = DBotIntent()
-            dbot_intent_message.name = dbot_intent.name
-            dbot_intent_message.sent = dbot_intent.sent
-            dbot_intent_message.matches = dbot_intent.matches
-            dbot_intent_message.conf = dbot_intent.conf
-            producer.send('intents', dbot_intent_message.SerializeToString())
+            dbot_utterance = DBotUtterance()
+            dbot_utterance.ParseFromString(message.value)
+            dbot_intent = dbot_intent_parser.calc_intent(dbot_utterance.utterance)
+            print(dbot_intent)
+            if dbot_intent is not None:
+                dbot_intent_message = DBotIntent()
+                dbot_intent_message.name = dbot_intent.name
+                dbot_intent_message.sent = json.dumps(dbot_intent.sent)
+                dbot_intent_message.matches = json.dumps(dbot_intent.matches)
+                dbot_intent_message.conf = dbot_intent.conf
+                producer.send('intents', dbot_intent_message.SerializeToString())
+            else:
+                dbot_intent_message = DBotIntent()
+                dbot_intent_message.name = "chat_gpt"
+                dbot_intent_message.sent = json.dumps(dbot_utterance.utterance.split(' '))
+                dbot_intent_message.matches = json.dumps({})
+                dbot_intent_message.conf = 1.0
+                producer.send('intents', dbot_intent_message.SerializeToString())
 
 
 if __name__ == '__main__':

@@ -1,7 +1,13 @@
 version: '2'
+
+networks:
+  dbot_network:
+
 services:
   redis:
       image: redis:alpine3.17
+      networks:
+        - dbot_network
       command: redis-server
       restart: always
       ports:
@@ -12,12 +18,10 @@ services:
         - redis-data:/data
         - redis-conf:/usr/local/etc/redis/redis.conf
 
-  dbot-intent-service:
-    image: dbot-intent-service:1.0
-    build: ./dbot-intent-service
-
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
+    networks:
+      - dbot_network
     entrypoint: sh -c 'sleep 30 && /etc/confluent/docker/run'
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -27,6 +31,8 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:latest
+    networks:
+      - dbot_network
     depends_on:
       - zookeeper
     ports:
@@ -43,6 +49,8 @@ services:
 
   init-kafka:
     image: confluentinc/cp-kafka:latest
+    networks:
+      - dbot_network
     depends_on:
       - kafka
       - zookeeper
@@ -61,6 +69,19 @@ services:
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:9092 --list
       "
+
+  dbot-intent-service:
+    image: dbot-intent-service:1.0
+    networks:
+      - dbot_network
+    build: ./dbot-intent-service
+    depends_on:
+      - init-kafka
+      - kafka
+      - zookeeper
+    environment:
+      KAFKA_BOOTSTRAP_HOST: kafka
+      KAFKA_BOOTSTRAP_PORT: 9092
 
 volumes:
   redis-data:

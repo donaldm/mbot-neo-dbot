@@ -14,6 +14,7 @@ from time import sleep
 from kafka import KafkaProducer
 from messages.DBotCommand_pb2 import DBotCommand
 from messages.DBotStatus_pb2 import DBotStatus
+from messages.DBotUtterance_pb2 import DBotUtterance
 import json
 
 engine = IntentDeterminationEngine()
@@ -354,8 +355,14 @@ phrases_to_ignore = [
     '.....'
 ]
 
+
 def handle_intent(producer, current_command):
     print('Processing command: ' + current_command)
+
+    dbot_utterance = DBotUtterance()
+    dbot_utterance.utterance = current_command
+    producer.send('utterances', dbot_utterance.SerializeToString())
+
     handled_intent = False
     for intent in engine.determine_intent(current_command):
         if intent and intent.get('confidence') > 0:
