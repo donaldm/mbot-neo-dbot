@@ -1,6 +1,7 @@
 from kafka import KafkaConsumer
 from messages.DBotCommand_pb2 import DBotCommand
 from messages.DBotStatus_pb2 import DBotStatus
+from messages.DBotIntent_pb2 import DBotIntent
 import os
 import json
 import queue
@@ -111,6 +112,7 @@ def speak(phrases_buffer):
     tts_engine = pyttsx3.init()
     voices = tts_engine.getProperty('voices')
     tts_engine.setProperty('voice', voices[1].id)
+
     while True:
         if not phrases_buffer.empty():
             phrase = phrases_buffer.get()
@@ -169,10 +171,21 @@ class DBot(object):
         self.speed = max(self.speed - self.speed * 0.25, 0)
         self.move_in_direction(self.speed)
 
-    def stop(self):
+    def stop(self, stop_target):
         print("Dbot stop")
-        cyberpi.mbot2.forward(0)
-        cyberpi.mbot2.backward(0)
+
+        stop_talking = True
+        stop_movement = True
+
+        if stop_target == 'talking':
+            stop_movement = False
+        elif stop_target == 'movement':
+            stop_talking = False
+
+        if stop_movement:
+            cyberpi.mbot2.forward(0)
+            cyberpi.mbot2.backward(0)
+
         self.speed = 0
 
     def play_greeting(self):
@@ -221,28 +234,29 @@ class DBot(object):
         cyberpi.ultrasonic2.play(emotion)
 
     def process_move_intent(self, move_intent_json):
-        move_type = move_intent_json["MoveType"]
+        move_type = move_intent_json.get("move_direction", "")
         speed = 10
-        if 'Speed' in move_intent_json:
-            speed_matches = re.findall(r'\d+', move_intent_json['Speed'])
+        if 'speed' in move_intent_json:
+            speed_matches = re.findall(r'\d+', move_intent_json.get('speed'))
             if len(speed_matches) > 0:
                 speed = int(speed_matches[0])
                 print(speed)
 
-        if "forward" in move_type:
+        if 'forward' in move_type:
             self.move_forward(speed)
-        elif "backward" in move_type:
+        elif 'backward' in move_type:
             self.move_backward(speed)
 
     def process_turn_intent(self, turn_intent_json):
-        turn_direction = turn_intent_json["TurnDirection"]
-        if "left" in turn_direction:
+        turn_direction = turn_intent_json['turn_direction']
+        if 'left' in turn_direction:
             self.turn_left()
-        elif "right" in turn_direction:
+        elif 'right' in turn_direction:
             self.turn_right()
 
     def process_stop_intent(self, stop_intent_json):
-        self.stop()
+        stop_target = stop_intent_json.get('stop_target', '')
+        self.stop(stop_target)
 
     def process_accelerate_intent(self, accelerate_intent_json):
         self.accelerate()
@@ -261,8 +275,8 @@ class DBot(object):
 
     def process_raise_arm_intent(self, raise_arm_intent_json):
         angle = 180
-        if 'Angle' in raise_arm_intent_json:
-            angle_matches = re.findall(r'\d+', raise_arm_intent_json['Angle'])
+        if 'angle' in raise_arm_intent_json:
+            angle_matches = re.findall(r'\d+', raise_arm_intent_json['angle'])
             if len(angle_matches) > 0:
                 angle = int(angle_matches[0])
                 print(angle)
@@ -301,40 +315,42 @@ class DBot(object):
     def update(self):
         intent = self.intents.pop()
 
-        intent_type = intent.get('intent_type')
-        confidence = intent.get('confidence')
+        intent_name = intent.get('name', '')
+        intent_sent = intent.get('sent', [])
+        intent_matches = intent.get('matches', {})
+        intent_conf = intent.get('conf', 0)
 
-        if intent_type == "MoveIntent":
-            print("We received a move intent!")
-            self.process_move_intent(intent)
-        elif intent_type == "TurnIntent":
-            print("We received a turn intent!")
-            self.process_turn_intent(intent)
-        elif intent_type == "StopIntent":
-            print("We received a stop intent!")
-            self.process_stop_intent(intent)
-        elif intent_type == "AccelerateIntent":
-            print("we received an accelerate intent!")
-            self.process_accelerate_intent(intent)
-        elif intent_type == "DecelerateIntent":
+        if intent_name == 'move':
+            print('We received a move intent!')
+            self.process_move_intent(intent_matches)
+        elif intent_name == 'turn':
+            print('We received a turn intent!')
+            self.process_turn_intent(intent_matches)
+        elif intent_name == 'stop':
+            print('We received a stop intent!')
+            self.process_stop_intent(intent_matches)
+        elif intent_name == 'accelerate':
+            print('we received an accelerate intent!')
+            self.process_accelerate_intent(intent_matches)
+        elif intent_name == 'decelerate':
             print("We received a decelerate intent!")
-            self.process_decelerate_intent(intent)
-        elif intent_type == "GreetingIntent":
-            self.process_greeting_intent(intent)
-        elif intent_type == "OpenGripperIntent":
-            self.process_open_gripper_intent(intent)
-        elif intent_type == "CloseGripperIntent":
-            self.process_close_gripper_intent(intent)
-        elif intent_type == "RaiseArmIntent":
-            self.process_raise_arm_intent(intent)
-        elif intent_type == "LowerArmIntent":
-            self.process_lower_arm_intent(intent)
-        elif intent_type == "ClapIntent":
+            self.process_decelerate_intent(intent_matches)
+        elif intent_name == 'greeting':
+            self.process_greeting_intent(intent_matches)
+        elif intent_name == 'open_gripper':
+            self.process_open_gripper_intent(intent_matches)
+        elif intent_name == 'close_gripper':
+            self.process_close_gripper_intent(intent_matches)
+        elif intent_name == 'raise_arm':
+            self.process_raise_arm_intent(intent_matches)
+        elif intent_name == 'lower_arm':
+            self.process_lower_arm_intent(intent_matches)
+        elif intent_name == 'clap':
             self.process_clap_intent()
-        elif intent_type == "ShakeIntent":
+        elif intent_name == 'shake':
             self.process_shake_intent()
-        elif intent_type == "ChatGPTIntent":
-            self.process_chatgpt_intent(intent)
+        elif intent_name == 'chat_gpt':
+            self.process_chatgpt_intent(intent_matches)
 
 
 def consume_intents(intents_buffer):
@@ -357,10 +373,16 @@ def process_status(message):
         phrases_queue.put("I am ready to listen")
 
 
-def process_commands(message, intents_buffer):
-    dbot_command = DBotCommand()
-    dbot_command.ParseFromString(message.value)
-    intent_data = json.loads(dbot_command.intent_data)
+def process_intents(message, intents_buffer):
+    dbot_intent = DBotIntent()
+    dbot_intent.ParseFromString(message.value)
+
+    intent_data = {'name': dbot_intent.name,
+                   'sent': json.loads(dbot_intent.sent),
+                   'matches': json.loads(dbot_intent.matches),
+                   'conf': dbot_intent.conf}
+
+    print(intent_data)
     intents_buffer.put(intent_data)
 
 
@@ -371,14 +393,16 @@ def main():
     consumer_thread.start()
 
     consumer = KafkaConsumer( bootstrap_servers='localhost:29092')
-    consumer.subscribe(['status', 'commands'])
+    consumer.subscribe(['status', 'intents'])
 
     for message in consumer:
         if message.topic == "status":
             process_status(message)
-        elif message.topic == "commands":
-            process_commands(message, intents_buffer)
+        elif message.topic == 'intents':
+            process_intents(message, intents_buffer)
+
 
 # main
 if __name__ == '__main__':
     main()
+

@@ -50,7 +50,7 @@ def main():
                 dbot_intent_message = DBotIntent()
                 dbot_intent_message.name = "chat_gpt"
                 dbot_intent_message.sent = json.dumps(dbot_utterance.utterance.split(' '))
-                dbot_intent_message.matches = json.dumps({})
+                dbot_intent_message.matches = json.dumps({'prompt': dbot_utterance.utterance})
                 dbot_intent_message.conf = 1.0
                 producer.send('intents', dbot_intent_message.SerializeToString())
 
