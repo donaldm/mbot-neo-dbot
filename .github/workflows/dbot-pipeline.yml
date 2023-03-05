@@ -15,7 +15,8 @@ jobs:
     with:
       image_name: dbot-intent-service
       context: dbot-intent-service
-    secrets: inherit
+    secrets:
+      registry_password: ${{ secrets.GITHUB_TOKEN }}
 
   test-dbot-intent-service:
     needs: build-dbot-intent-service
@@ -24,4 +25,5 @@ jobs:
       image_name: dbot-intent-service
       workdir: /dbot/intent_service
       test_report_name: dbot_intent_service.xml
-    secrets: inherit
+    secrets:
+      registry_password: ${{ secrets.GITHUB_TOKEN }}

@@ -12,6 +12,9 @@ on:
       test_report_name:
         required: true
         type: string
+    secrets:
+      registry_password:
+        required: true
 
 jobs:
   test-dbot-service:
@@ -20,7 +23,7 @@ jobs:
       image: ghcr.io/donaldm/mbot-neo-dbot/${{ image_name }}:main
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.registry_password }}
     permissions:
       contents: write
       issues: read
