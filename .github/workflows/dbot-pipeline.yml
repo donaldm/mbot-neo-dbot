@@ -24,7 +24,7 @@ jobs:
       - name: Build
         uses: "./.github/templates/build-dbot-service"
         with:
-          registry: "${{ github.repository }}"
+          registry: "${{ env.REGISTRY }}"
           username: "${{ github.actor }}"
           password: "${{ secrets.GITHUB_TOKEN }}"
           image_name: "${{ env.IMAGE_NAME }}"
