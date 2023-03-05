@@ -87,6 +87,10 @@ def process_voice_events(args, audio_model, command_buffer):
 
                 # Read the transcription.
                 result = audio_model.transcribe(temp_file)
+                print(result)
+                no_speech_probability = 1
+                if len(result['segments']) > 0:
+                    no_speech_probability = result['segments'][0]['no_speech_prob']
                 text = result['text'].strip()
 
                 # If we detected a pause between recordings, add a new item to our transcripion.
@@ -102,8 +106,10 @@ def process_voice_events(args, audio_model, command_buffer):
 
                 if len(transcription) > 0:
                     command = parse(transcription.pop(0).lower())
-                    print(command)
-                    command_buffer.put(command)
+                    # We only want to process likely commands and not noise
+                    if no_speech_probability < 0.5:
+                        print(command)
+                        command_buffer.put(command)
 
                 # Infinite loops are bad for processors, must sleep.
                 sleep(0.25)
