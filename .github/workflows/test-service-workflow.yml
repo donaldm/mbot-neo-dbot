@@ -17,6 +17,7 @@ on:
         required: true
 
 jobs:
+  test-dbot-service:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/donaldm/mbot-neo-dbot/${{ image_name }}:main
