@@ -11,14 +11,14 @@ runs:
   using: "composite"
   steps:
     - name: Test with pytest
-      shell: bash
+      shell: sh
       run: |
         TEST_RESULT_FOLDER=$GITHUB_WORKSPACE/test-results
         mkdir -p $TEST_RESULT_FOLDER
         cd ${{ inputs.workdir }}
         pytest --junitxml=$TEST_RESULT_FOLDER/${{ inputs.test_report_name }}
     - name: Install node
-      shell: bash
+      shell: sh
       run: |
         apk add --update nodejs npm
     - name: Publish test results
