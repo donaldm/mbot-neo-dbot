@@ -45,6 +45,8 @@ jobs:
       pull-requests: write
       packages: read
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
       - name: Test
         uses: "./.github/templates/test-dbot-service"
         with:
