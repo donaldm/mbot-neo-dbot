@@ -20,7 +20,7 @@ jobs:
   test-dbot-service:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/donaldm/mbot-neo-dbot/${{ image_name }}:main
+      image: ghcr.io/donaldm/mbot-neo-dbot/${{ inputs.image_name }}:main
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.registry_password }}
@@ -36,5 +36,5 @@ jobs:
       - name: Test
         uses: "./.github/templates/test-dbot-service"
         with:
-          workdir: ${{ input.workdir }}
-          test_report_name: ${{ input.test_report_name }}
+          workdir: ${{ inputs.workdir }}
+          test_report_name: ${{ inputs.test_report_name }}

@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: ${{ github.repository }}/${{ input.image_name }}
+      IMAGE_NAME: ${{ github.repository }}/${{ inputs.image_name }}
     permissions:
       contents: read
       packages: write
@@ -31,4 +31,4 @@ jobs:
           username: "${{ github.actor }}"
           password: "${{ secrets.registry_password }}"
           image_name: "${{ env.IMAGE_NAME }}"
-          context: ${{ input.context }}
+          context: ${{ inputs.context }}
