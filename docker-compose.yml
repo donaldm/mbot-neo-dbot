@@ -22,7 +22,6 @@ services:
     image: confluentinc/cp-zookeeper:latest
     networks:
       - dbot_network
-    entrypoint: sh -c 'sleep 30 && /etc/confluent/docker/run'
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -31,6 +30,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:latest
+    entrypoint: sh -c 'sleep 30 && /etc/confluent/docker/run'
     networks:
       - dbot_network
     depends_on:

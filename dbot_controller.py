@@ -1,5 +1,4 @@
 from kafka import KafkaConsumer
-from messages.DBotCommand_pb2 import DBotCommand
 from messages.DBotStatus_pb2 import DBotStatus
 from messages.DBotIntent_pb2 import DBotIntent
 import os

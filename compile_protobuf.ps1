@@ -1,7 +1,7 @@
 $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 
 $folders = "messages", "dbot-intent-service/messages", "text-to-speech-service/messages"
-$protobufs = "DBotCommand.proto", "DBotStatus.proto", "DBotIntent.proto", "DBotUtterance.proto"
+$protobufs = "DBotStatus.proto", "DBotIntent.proto", "DBotUtterance.proto"
 
 foreach ($folder in $folders)
 {
