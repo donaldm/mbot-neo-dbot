@@ -20,7 +20,7 @@ jobs:
       packages: write
     steps:
       - name: Build
-        uses: "./.github/template/build-dbot-service"
+        uses: "./.github/templates/build-dbot-service"
         with:
           registry: "${{ github.repository }}"
           username: "${{ github.actor }}"
@@ -44,7 +44,7 @@ jobs:
       packages: read
     steps:
       - name: Test
-        uses: "./.github/template/test-dbot-service"
+        uses: "./.github/templates/test-dbot-service"
         with:
           workdir: "/dbot/intent_service"
           test_report_name: "dbot_intent_service.xml"
