@@ -11,44 +11,17 @@ on:
 
 jobs:
   build-dbot-intent-service:
-    runs-on: ubuntu-latest
-    env:
-      REGISTRY: ghcr.io
-      IMAGE_NAME: ${{ github.repository }}/dbot-intent-service
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Build
-        uses: "./.github/templates/build-dbot-service"
-        with:
-          registry: "${{ env.REGISTRY }}"
-          username: "${{ github.actor }}"
-          password: "${{ secrets.GITHUB_TOKEN }}"
-          image_name: "${{ env.IMAGE_NAME }}"
-          context: "dbot-intent-service"
+    uses: "./.github/workflows/build-service-workflow.yml"
+    with:
+      image_name: dbot-intent-service
+      context: dbot-intent-service
+    secrets: inherit
 
   test-dbot-intent-service:
     needs: build-dbot-intent-service
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/donaldm/mbot-neo-dbot/dbot-intent-service:main
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    permissions:
-      contents: write
-      issues: read
-      checks: write
-      pull-requests: write
-      packages: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Test
-        uses: "./.github/templates/test-dbot-service"
-        with:
-          workdir: "/dbot/intent_service"
-          test_report_name: "dbot_intent_service.xml"
+    uses: "./github/workflows/test-service-workflow.yml"
+    with:
+      image_name: dbot-intent-service
+      workdir: /dbot/intent_service
+      test_report_name: dbot_intent_service.xml
+    secrets: inherit

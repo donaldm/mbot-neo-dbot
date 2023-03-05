@@ -1,0 +1,34 @@
+name: Build DBot Service Container
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        required: true
+        type: string
+      context:
+        required: true
+        type: string
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+jobs:
+  build-dbot-service:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}/${{ input.image_name }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Build
+        uses: "./.github/templates/build-dbot-service"
+        with:
+          registry: "${{ env.REGISTRY }}"
+          username: "${{ github.actor }}"
+          password: "${{ secrets.GITHUB_TOKEN }}"
+          image_name: "${{ env.IMAGE_NAME }}"
+          context: ${{ input.context }}
