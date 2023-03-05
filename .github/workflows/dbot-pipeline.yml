@@ -18,40 +18,15 @@ jobs:
     permissions:
       contents: read
       packages: write
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Login to container registry
-        uses: docker/login-action@v2.1.0
+      - name: Build
+        uses: "./.github/template/build-dbot-service"
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v4.3.0
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
-        with:
-          version: '3.x'
-
-      - name: Compile protobuf
-        shell: pwsh
-        run: ./compile_protobuf.ps1
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: dbot-intent-service
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          registry: "${{ github.repository }}"
+          username: "${{ github.actor }}"
+          password: "${{ secrets.GITHUB_TOKEN }}"
+          image_name: "${{ env.IMAGE_NAME }}"
+          context: "dbot-intent-service"
 
   test-dbot-intent-service:
     needs: build-dbot-intent-service
@@ -68,19 +43,8 @@ jobs:
       pull-requests: write
       packages: read
     steps:
-      - name: Test with pytest
-        run: |
-          TEST_RESULT_FOLDER=$GITHUB_WORKSPACE/test-results
-          mkdir -p $TEST_RESULT_FOLDER
-          cd /dbot/intent_service
-          pytest --junitxml=$TEST_RESULT_FOLDER/dbot_intent_service.xml
-      - name: Install node
-        run: |
-          apk add --update nodejs npm
-      - name: Publish test results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        id: test-results
-        if: always()
+      - name: Test
+        uses: "./.github/template/test-dbot-service"
         with:
-          files: |
-            test-results/*.xml
+          workdir: "/dbot/intent_service"
+          test_report_name: "dbot_intent_service.xml"

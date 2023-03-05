@@ -1,0 +1,30 @@
+name: test-dbot-service
+description: "Test DBot service with pytest"
+inputs:
+  workdir:
+    description: "The working directory of the DBot Service"
+    required: true
+  test_report_name:
+    description: "The name of the JUnit test report"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Test with pytest
+      shell: bash
+      run: |
+        TEST_RESULT_FOLDER=$GITHUB_WORKSPACE/test-results
+        mkdir -p $TEST_RESULT_FOLDER
+        cd ${{ inputs.workdir }}
+        pytest --junitxml=$TEST_RESULT_FOLDER/${{ inputs.test_report_name }}
+    - name: Install node
+      shell: bash
+      run: |
+        apk add --update nodejs npm
+    - name: Publish test results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      id: test-results
+      if: always()
+      with:
+        files: |
+          test-results/*.xml
