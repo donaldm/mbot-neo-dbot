@@ -1,13 +1,19 @@
-from kafka import KafkaConsumer
-from messages.DBotStatus_pb2 import DBotStatus
-from messages.DBotIntent_pb2 import DBotIntent
+
 import os
 import json
 import queue
 import random
 import re
 import threading
-from time import sleep
+import time
+
+import kafka.errors
+from kafka import KafkaConsumer, KafkaProducer
+
+from messages.DBotStatus_pb2 import DBotStatus
+from messages.DBotIntent_pb2 import DBotIntent
+from messages.DBotTTSRequest_pb2 import DBotTTSRequest
+
 import pygame
 import cyberpi
 import pyttsx3
@@ -119,14 +125,14 @@ def speak(phrases_buffer):
             tts_engine.say(phrase)
             tts_engine.runAndWait()
 
-
 phrases_queue = queue.Queue()
 tts_thread = threading.Thread(target=speak, args=(phrases_queue,))
 tts_thread.start()
 
 
 class DBot(object):
-    def __init__(self):
+    def __init__(self, kafka_producer):
+        self.kafka_producer = kafka_producer
         self.intents = []
         self.speed = 0
         self.direction = ""
@@ -136,7 +142,10 @@ class DBot(object):
         self.speak("I have connected to ChatGPT")
 
     def speak(self, text):
-        phrases_queue.put(text)
+        dbot_tts_request = DBotTTSRequest()
+        dbot_tts_request.request = text
+        self.kafka_producer.send('tts', dbot_tts_request.SerializeToString())
+        #phrases_queue.put(text)
 
     def move_forward(self, speed=10):
         print("DBot move forward {speed}".format(speed=speed))
@@ -352,8 +361,8 @@ class DBot(object):
             self.process_chatgpt_intent(intent_matches)
 
 
-def consume_intents(intents_buffer):
-    dbot = DBot()
+def consume_intents(kafka_producer, intents_buffer):
+    dbot = DBot(kafka_producer)
 
     while True:
         if not intents_buffer.empty():
@@ -362,7 +371,7 @@ def consume_intents(intents_buffer):
             dbot.push_intent(intent)
             dbot.update()
         # dbot.obstacle_avoidance()
-        sleep(0.05)
+        time.sleep(0.05)
 
 
 def process_status(message):
@@ -386,13 +395,24 @@ def process_intents(message, intents_buffer):
 
 
 def main():
+    kafka_server_url = 'localhost:29092'
+
+    print(f'Connecting to {kafka_server_url}...')
+    connected = False
+    while not connected:
+        try:
+            producer = KafkaProducer(bootstrap_servers=[kafka_server_url])
+            consumer = KafkaConsumer( bootstrap_servers=kafka_server_url)
+            consumer.subscribe(['status', 'intents'])
+            connected = True
+        except kafka.errors.NoBrokersAvailable as error:
+            print('Waiting on Kafka to connect')
+            time.sleep(1)
+
     intents_buffer = queue.Queue()
 
-    consumer_thread = threading.Thread(target=consume_intents, args=(intents_buffer,))
+    consumer_thread = threading.Thread(target=consume_intents, args=(producer, intents_buffer,))
     consumer_thread.start()
-
-    consumer = KafkaConsumer( bootstrap_servers='localhost:29092')
-    consumer.subscribe(['status', 'intents'])
 
     for message in consumer:
         if message.topic == "status":

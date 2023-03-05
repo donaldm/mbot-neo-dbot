@@ -61,11 +61,10 @@ services:
       kafka-topics --bootstrap-server kafka:9092 --list
 
       echo -e 'Creating kafka topics'
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic commands --replication-factor 1 --partitions 1
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic status --replication-factor 1 --partitions 1 
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic utterances --replication-factor 1 --partitions 1 
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic intents --replication-factor 1 --partitions 1 
-
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic tts --replication-factor 1 --partitions 1 
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:9092 --list
       "
@@ -82,6 +81,21 @@ services:
     environment:
       KAFKA_BOOTSTRAP_HOST: kafka
       KAFKA_BOOTSTRAP_PORT: 9092
+      PYTHONUNBUFFERED: 1
+
+  text-to-speech-service:
+    image: text-to-speech-service:1.0
+    networks:
+      - dbot_network
+    build: ./text-to-speech-service
+    depends_on:
+      - init-kafka
+      - kafka
+      - zookeeper
+    environment:
+      KAFKA_BOOTSTRAP_HOST: kafka
+      KAFKA_BOOTSTRAP_PORT: 9092
+      PYTHONUNBUFFERED: 1
 
 volumes:
   redis-data:
