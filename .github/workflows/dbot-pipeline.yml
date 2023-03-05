@@ -27,3 +27,21 @@ jobs:
       test_report_name: dbot_intent_service.xml
     secrets:
       registry_password: ${{ secrets.GITHUB_TOKEN }}
+
+  build-text-to-speech-service:
+    uses: "./.github/workflows/build-service-workflow.yml"
+    with:
+      image_name: text-to-speech-service
+      context: text-to-speech-service
+    secrets:
+      registry_password: ${{ secrets.GITHUB_TOKEN }}
+
+  test-text-to-speech-service:
+    needs: build-text-to-speech-service
+    uses: "./.github/workflows/test-service-workflow.yml"
+    with:
+      image_name: text-to-speech-service
+      workdir: /dbot/text_to_speech_service
+      test_report_name: dbot_text_to_speech_service.xml
+    secrets:
+      registry_password: ${{ secrets.GITHUB_TOKEN }}

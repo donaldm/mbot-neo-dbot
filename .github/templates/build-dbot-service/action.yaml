@@ -13,6 +13,9 @@ inputs:
   image_name:
     description: "The name of the image to push"
     required: true
+  context:
+    description: "The context for building the container"
+    required: true
 
 runs:
     using: "composite"
