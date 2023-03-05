@@ -19,7 +19,7 @@ jobs:
 
   test-dbot-intent-service:
     needs: build-dbot-intent-service
-    uses: "./github/workflows/test-service-workflow.yml"
+    uses: "./.github/workflows/test-service-workflow.yml"
     with:
       image_name: dbot-intent-service
       workdir: /dbot/intent_service
