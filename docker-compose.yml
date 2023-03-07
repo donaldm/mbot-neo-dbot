@@ -92,10 +92,18 @@ services:
       - init-kafka
       - kafka
       - zookeeper
+    volumes:
+      - "/etc/alsa:/etc/alsa"
+      - "/usr/share/alsa:/usr/share/alsa"
+      - "~/.config/pulse:/.config/pulse"
+      - "/mnt/wslg/PulseServer:/mnt/wslg/PulseServer"
     environment:
       KAFKA_BOOTSTRAP_HOST: kafka
       KAFKA_BOOTSTRAP_PORT: 9092
       PYTHONUNBUFFERED: 1
+      PULSE_SERVER: unix:/mnt/wslg/PulseServer
+    group_add:
+      - "29"
 
 volumes:
   redis-data:

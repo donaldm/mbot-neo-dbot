@@ -1,3 +1,6 @@
-pyttsx3==2.90
 protobuf==4.22.0
 kafka-python==2.0.2
+onnxruntime
+pygame
+mycroft-mimic3-tts==0.2.4
+mycroft-plugin-tts-mimic3[all]==0.1.5

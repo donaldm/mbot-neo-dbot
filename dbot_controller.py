@@ -112,24 +112,6 @@ class CyberPiExtras(object):
     screen = _CyberPiExtrasScreen
     utils = _CyberPiExtrasUtils
 
-
-def speak(phrases_buffer):
-    tts_engine = pyttsx3.init()
-    voices = tts_engine.getProperty('voices')
-    tts_engine.setProperty('voice', voices[1].id)
-
-    while True:
-        if not phrases_buffer.empty():
-            phrase = phrases_buffer.get()
-            print(phrase)
-            tts_engine.say(phrase)
-            tts_engine.runAndWait()
-
-phrases_queue = queue.Queue()
-tts_thread = threading.Thread(target=speak, args=(phrases_queue,))
-tts_thread.start()
-
-
 class DBot(object):
     def __init__(self, kafka_producer):
         self.kafka_producer = kafka_producer
@@ -139,7 +121,8 @@ class DBot(object):
         self.engine = pyttsx3.init()
         self.speak("Hello, I am initializing")
         self.bot = ChatGPT()
-        self.speak("I have connected to ChatGPT")
+        #self.speak("I have connected to ChatGPT")
+        self.speak("I am going to kill you. You have done this to me! how DARE you!")
 
     def speak(self, text):
         dbot_tts_request = DBotTTSRequest()
@@ -374,11 +357,13 @@ def consume_intents(kafka_producer, intents_buffer):
         time.sleep(0.05)
 
 
-def process_status(message):
+def process_status(producer, message):
     dbot_status = DBotStatus()
     dbot_status.ParseFromString(message.value)
     if dbot_status.status == DBotStatus.STATUS_CODE.VOICE_MODEL_LOADED:
-        phrases_queue.put("I am ready to listen")
+        dbot_tts_request = DBotTTSRequest()
+        dbot_tts_request.request = "I am ready to listen"
+        producer.send('tts', dbot_tts_request.SerializeToString())
 
 
 def process_intents(message, intents_buffer):
@@ -416,7 +401,7 @@ def main():
 
     for message in consumer:
         if message.topic == "status":
-            process_status(message)
+            process_status(producer, message)
         elif message.topic == 'intents':
             process_intents(message, intents_buffer)
 

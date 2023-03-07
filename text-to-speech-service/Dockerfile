@@ -1,7 +1,9 @@
-FROM python:3.9.16-alpine3.17
+FROM python:3.9.16-buster
 
 ENV TEXT_TO_SPEECH_SERVICE_WORKDIR=/dbot/text_to_speech_service
-RUN apk add python3-dev
+RUN apt-get update
+RUN apt-get install python3-dev alsa-utils pulseaudio -y
+RUN apt-get install espeak-ng -y
 
 WORKDIR ${TEXT_TO_SPEECH_SERVICE_WORKDIR}
 COPY requirements.txt ${TEXT_TO_SPEECH_SERVICE_WORKDIR}
