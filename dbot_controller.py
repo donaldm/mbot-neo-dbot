@@ -112,6 +112,7 @@ class CyberPiExtras(object):
     screen = _CyberPiExtrasScreen
     utils = _CyberPiExtrasUtils
 
+
 class DBot(object):
     def __init__(self, kafka_producer):
         self.kafka_producer = kafka_producer
@@ -121,14 +122,22 @@ class DBot(object):
         self.engine = pyttsx3.init()
         self.speak("Hello, I am initializing")
         self.bot = ChatGPT()
-        #self.speak("I have connected to ChatGPT")
-        self.speak("I am going to kill you. You have done this to me! how DARE you!")
+        self.speak("I have connected to ChatGPT")
 
     def speak(self, text):
         dbot_tts_request = DBotTTSRequest()
         dbot_tts_request.request = text
         self.kafka_producer.send('tts', dbot_tts_request.SerializeToString())
-        #phrases_queue.put(text)
+
+    def start_talking(self):
+        dbot_tts_request = DBotTTSRequest()
+        dbot_tts_request.start_talking = True
+        self.kafka_producer.send('tts', dbot_tts_request.SerializeToString())
+
+    def stop_talking(self):
+        dbot_tts_request = DBotTTSRequest()
+        dbot_tts_request.stop_talking = True
+        self.kafka_producer.send('tts', dbot_tts_request.SerializeToString())
 
     def move_forward(self, speed=10):
         print("DBot move forward {speed}".format(speed=speed))
@@ -176,6 +185,9 @@ class DBot(object):
         if stop_movement:
             cyberpi.mbot2.forward(0)
             cyberpi.mbot2.backward(0)
+
+        if stop_talking:
+            self.stop_talking()
 
         self.speed = 0
 
@@ -244,6 +256,11 @@ class DBot(object):
             self.turn_left()
         elif 'right' in turn_direction:
             self.turn_right()
+
+    def process_start_intent(self, start_intent_json):
+        start_target = start_intent_json.get('start_target', '')
+        if 'talking' in start_target:
+            self.start_talking()
 
     def process_stop_intent(self, stop_intent_json):
         stop_target = stop_intent_json.get('stop_target', '')
@@ -317,6 +334,9 @@ class DBot(object):
         elif intent_name == 'turn':
             print('We received a turn intent!')
             self.process_turn_intent(intent_matches)
+        elif intent_name == 'start':
+            print('We received a start intent!')
+            self.process_start_intent(intent_matches)
         elif intent_name == 'stop':
             print('We received a stop intent!')
             self.process_stop_intent(intent_matches)
@@ -406,7 +426,5 @@ def main():
             process_intents(message, intents_buffer)
 
 
-# main
 if __name__ == '__main__':
     main()
-

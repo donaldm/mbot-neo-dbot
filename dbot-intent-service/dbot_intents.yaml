@@ -7,6 +7,10 @@ entities:
       - backward
       - backwards
 
+  - name: start_target
+    choices:
+      - talking
+
   - name: stop_target
     choices:
       - dbot
@@ -37,6 +41,10 @@ intents:
     example_sentences:
       - (move|go) {move_direction}
       - (move|go) {move_direction} {speed}
+
+  - name: start
+    example_sentences:
+      - start {start_target}
 
   - name: stop
     example_sentences:

@@ -10,6 +10,7 @@ COPY requirements.txt ${TEXT_TO_SPEECH_SERVICE_WORKDIR}
 RUN pip3 install -r requirements.txt
 
 COPY text_to_speech_service.py ${TEXT_TO_SPEECH_SERVICE_WORKDIR}
+COPY config.yaml ${TEXT_TO_SPEECH_SERVICE_WORKDIR}
 COPY text_to_speech_service ${TEXT_TO_SPEECH_SERVICE_WORKDIR}/text_to_speech_service
 COPY tests ${TEXT_TO_SPEECH_SERVICE_WORKDIR}/tests
 

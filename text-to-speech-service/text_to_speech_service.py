@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import yaml
 
 import kafka.errors
 from kafka import KafkaConsumer, KafkaProducer
@@ -13,10 +14,15 @@ SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
 
 def main():
-    voice = 'en_US/hifi-tts_low'
+    config_path = os.path.join(SCRIPT_ROOT, 'config.yaml')
+    with open(config_path, 'r') as config_file:
+        config = yaml.safe_load(config_file)
+
+    voice = config.get('voice')
+    speaker = config.get('speaker')
     lang = voice.split('/')[0]
     config = {'voice': voice,
-              'speaker': '92',
+              'speaker': speaker,
               'voices_download_dir': SCRIPT_ROOT}
 
     text_to_speech_service = TextToSpeechService(lang, config)
@@ -49,8 +55,15 @@ def main():
         if message.topic == 'tts':
             dbot_tts_request = DBotTTSRequest()
             dbot_tts_request.ParseFromString(message.value)
-            print(dbot_tts_request.request)
-            text_to_speech_service.speak(dbot_tts_request.request)
+            request = dbot_tts_request.request
+            if request != '':
+                request = request.replace('ChatGPT', 'Chat G P T')
+                request = request.replace('OpenAI', 'Open A I')
+                text_to_speech_service.speak(request)
+            elif dbot_tts_request.stop_talking:
+                text_to_speech_service.stop()
+            elif dbot_tts_request.start_talking:
+                text_to_speech_service.start()
 
 
 if __name__ == '__main__':
