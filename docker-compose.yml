@@ -92,6 +92,8 @@ services:
       - init-kafka
       - kafka
       - zookeeper
+    ports:
+      - '8000:8000'
     volumes:
       - "/etc/alsa:/etc/alsa"
       - "/usr/share/alsa:/usr/share/alsa"

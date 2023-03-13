@@ -27,8 +27,8 @@ class TextToSpeechService(object):
             self.phrases_queue.get()
         self.tts_process.join()
 
-    def speak(self, phrase):
-        self.phrases_queue.put(phrase)
+    def speak(self, phrase, skip_playing_audio):
+        self.phrases_queue.put((phrase, skip_playing_audio))
 
     @staticmethod
     def _speak_process(lang, tts_config, phrases_buffer, stop_event):
@@ -37,14 +37,15 @@ class TextToSpeechService(object):
         # We want to continue speaking until the stop_event is set
         while not stop_event.is_set():
             if not phrases_buffer.empty():
-                phrase = phrases_buffer.get()
+                phrase, skip_playing_audio = phrases_buffer.get()
                 sound_filename = 'speak.wav'
                 mimic.get_tts(phrase, sound_filename)
-                pygame.mixer.music.load(sound_filename)
-                pygame.mixer.music.play()
-                # Block until finished
-                while pygame.mixer.music.get_busy():
-                    if stop_event.is_set():
-                        pygame.mixer.stop()
-                        break
-                    time.sleep(0.1)
+                if not skip_playing_audio:
+                    pygame.mixer.music.load(sound_filename)
+                    pygame.mixer.music.play()
+                    # Block until finished
+                    while pygame.mixer.music.get_busy():
+                        if stop_event.is_set():
+                            pygame.mixer.stop()
+                            break
+                        time.sleep(0.1)
